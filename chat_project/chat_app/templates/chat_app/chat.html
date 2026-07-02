@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat with {{ other_user.username }}</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; font-family:Arial, sans-serif; }
+        body {
+            background: #e5ddd5;
+            height: 100vh;
+            display: flex;
+        }
+        .sidebar {
+            width: 300px;
+            background: #fff;
+            border-right: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar-header {
+            background: #008069;
+            color: white;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .user-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+        .user-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+        .user-item:hover { background: #f0f2f5; }
+        .user-item.active { background: #e5ddd5; }
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-header {
+            background: #008069;
+            color: white;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #e5ddd5;
+        }
+        .msg {
+            max-width: 70%;
+            padding: 10px 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-size: 15px;
+        }
+        .msg.self {
+            background: #d9fdd3;
+            margin-left: auto;
+            border-top-right-radius: 0;
+        }
+        .msg.other {
+            background: white;
+            border-top-left-radius: 0;
+        }
+        .input-area {
+            background: #f0f2f5;
+            padding: 15px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .input-area input {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 30px;
+            outline: none;
+            font-size: 15px;
+        }
+        .input-area button {
+            width: 45px;
+            height: 45px;
+            border: none;
+            border-radius: 50%;
+            background: #008069;
+            color: white;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        .logout-btn {
+            background: none;
+            border: 1px solid white;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <span>Welcome, {{ user.username }}!</span>
+            <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="logout-btn">Logout</button>
+            </form>
+        </div>
+        <div class="user-list">
+            {% for u in users %}
+            <a href="{% url 'chat_with_user' u.id %}" style="text-decoration: none; color: inherit;">
+                <div class="user-item {% if u.id == other_user.id %}active{% endif %}">
+                    {{ u.username }}
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="chat-container">
+        <div class="chat-header">
+            <strong>Chat with {{ other_user.username }}</strong>
+        </div>
+        <div class="messages" id="messages">
+            {% for msg in messages %}
+            <div class="msg {% if msg.sender == user %}self{% else %}other{% endif %}">
+                {{ msg.content }}
+            </div>
+            {% endfor %}
+        </div>
+        <div class="input-area">
+            <form id="form" style="display:flex; gap:10px; width:100%;">
+                <input type="text" id="input" placeholder="Type a message" required>
+                <button type="submit">➤</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const clientId = Date.now().toString(36);
+        const currentUsername = "{{ user.username }}";
+        const receiverId = {{ other_user.id }};
+        const currentUserId = {{ user.id }};
+        
+        const ws = new WebSocket('ws://' + window.location.host + '/ws/chat/');
+        const msgs = document.getElementById('messages');
+        const form = document.getElementById('form');
+        const input = document.getElementById('input');
+
+        ws.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            if (data.sender_id === receiverId || data.sender_id === currentUserId) {
+                const div = document.createElement('div');
+                div.className = 'msg ' + (data.sender_id === currentUserId ? 'self' : 'other');
+                div.textContent = data.message;
+                msgs.appendChild(div);
+                msgs.scrollTop = msgs.scrollHeight;
+            }
+        };
+
+        form.onsubmit = function(e) {
+            e.preventDefault();
+            if (input.value.trim()) {
+                ws.send(JSON.stringify({ 
+                    message: input.value, 
+                    receiver_id: receiverId,
+                    client_id: clientId, 
+                    username: currentUsername 
+                }));
+                input.value = '';
+            }
+        };
+        
+        msgs.scrollTop = msgs.scrollHeight;
+    </script>
+</body>
+</html>
