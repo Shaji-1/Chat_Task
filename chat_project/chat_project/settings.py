@@ -81,9 +81,6 @@ LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'index'
 LOGOUT_REDIRECT_URL = 'login'
 
-# Session expires when browser closes
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases

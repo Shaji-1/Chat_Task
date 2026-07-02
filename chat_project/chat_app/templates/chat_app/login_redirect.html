@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Redirecting...</title>
+    <script>
+        // Store user ID in sessionStorage (per-tab storage)
+        sessionStorage.setItem('chat_logged_in_user_id', '{{ user_id }}');
+        // Redirect to the main page
+        window.location.href = '{{ next_url }}';
+    </script>
+</head>
+<body>
+    <p>Redirecting...</p>
+</body>
+</html>

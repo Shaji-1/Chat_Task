@@ -37,7 +37,7 @@ def register(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect('index')
+            return render(request, 'chat_app/login_redirect.html', {'next_url': '/', 'user_id': user.id})
     else:
         form = UserCreationForm()
     return render(request, 'chat_app/register.html', {'form': form})
@@ -48,7 +48,7 @@ def login_view(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-            return redirect('index')
+            return render(request, 'chat_app/login_redirect.html', {'next_url': '/', 'user_id': user.id})
     else:
         form = AuthenticationForm()
     return render(request, 'chat_app/login.html', {'form': form})
