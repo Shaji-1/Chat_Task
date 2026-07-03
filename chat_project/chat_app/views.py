@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth import login, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from django.contrib.auth.models import User
 from .models import Message
 
@@ -34,7 +35,10 @@ def register(request):
             user = form.save()
             login(request, user)
             return redirect('index')
+        # form is invalid — fall through to render with errors
     else:
+        if request.user.is_authenticated:
+            return redirect('index')
         form = UserCreationForm()
     return render(request, 'chat_app/register.html', {'form': form})
 
@@ -45,10 +49,14 @@ def login_view(request):
             user = form.get_user()
             login(request, user)
             return redirect('index')
+        # form is invalid — fall through to render with errors
     else:
+        if request.user.is_authenticated:
+            return redirect('index')
         form = AuthenticationForm()
     return render(request, 'chat_app/login.html', {'form': form})
 
+@require_POST
 def logout_view(request):
     logout(request)
     return redirect('login')
