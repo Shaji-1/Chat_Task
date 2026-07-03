@@ -108,6 +108,12 @@
     </style>
 </head>
 <body>
+    <script>
+        // Check if this tab is logged in
+        if (!sessionStorage.getItem('chat_logged_in_user_id')) {
+            window.location.href = "{% url 'login' %}";
+        }
+    </script>
     <div class="sidebar">
         <div class="sidebar-header">
             <span>Welcome, {{ user.username }}!</span>

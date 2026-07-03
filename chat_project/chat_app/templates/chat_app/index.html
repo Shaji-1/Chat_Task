@@ -49,6 +49,12 @@
     </style>
 </head>
 <body>
+    <script>
+        // Check if this tab is logged in
+        if (!sessionStorage.getItem('chat_logged_in_user_id')) {
+            window.location.href = "{% url 'login' %}";
+        }
+    </script>
     <div class="container">
         <h1>Welcome, {{ user.username }}!</h1>
         <h3>Select a user to chat with:</h3>

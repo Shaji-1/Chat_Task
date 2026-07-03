@@ -9,6 +9,10 @@ from .models import Message
 @login_required
 def index(request):
     users = User.objects.exclude(id=request.user.id)
+    if users.exists():
+        # If there's at least one other user, go to chat with the first one
+        return redirect('chat_with_user', user_id=users.first().id)
+    # If no other users, show the index page
     return render(request, 'chat_app/index.html', {'user': request.user, 'users': users})
 
 @login_required
@@ -34,8 +38,7 @@ def register(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect('index')
-        # form is invalid — fall through to render with errors
+            return render(request, 'chat_app/login_redirect.html', {'next_url': '/', 'user_id': user.id})
     else:
         if request.user.is_authenticated:
             return redirect('index')
@@ -48,8 +51,7 @@ def login_view(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-            return redirect('index')
-        # form is invalid — fall through to render with errors
+            return render(request, 'chat_app/login_redirect.html', {'next_url': '/', 'user_id': user.id})
     else:
         if request.user.is_authenticated:
             return redirect('index')
